@@ -1,36 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import SearchBar from './components/SearchBar/SearchBar';
+import ProfileCard from './components/ProfileCard/ProfileCard';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage';
+import Loader from './components/Loader/Loader';
+import { fetchGitHubUser } from './services/github';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [user, setUser]       = useState(null);
+  const [error, setError]     = useState('');
+  const [isLoading, setLoading] = useState(false);
+
+  async function handleSearch(username) {
+    setError('');
+    setUser(null);
+    setLoading(true);
+    try {
+      const data = await fetchGitHubUser(username);
+      setUser(data);
+    } catch {
+      setError('Nenhum perfil foi encontrado com esse nome de usuário.\nTente novamente');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
-      <div>
-        <p>teste</p>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App d-flex flex-column align-items-center justify-content-center min-vh-100 text-white">
+      <h1 className="mb-4">Perfil GitHub</h1>
+      <SearchBar onSearch={handleSearch} />
+      {isLoading && <Loader />}
+      {error && <ErrorMessage message={error} />}
+      {user && <ProfileCard user={user} />}
+    </div>
+  );
 }
-
-export default App
